@@ -8,16 +8,16 @@ from tqdm import tqdm
 sampler = SimulatedAnnealingSampler()
 
 if __name__ == '__main__':
-
-    for size in ["P8", "P16"]:
-        for instance_class in ["CBFM-P", "RCO", "RAU"]:
+    DATA_ROOT = PEGASUS_ROOT
+    for size in ["P4"]:
+        for instance_class in ["CBFM-P"]:
             df = pd.DataFrame(columns=["Instance", "Energy", "State"], index=None)
             instances = []
             energies = []
             states = []
             for i in tqdm(range(0, 20), desc=f"{size} {instance_class}"):
                 number = f"{i+1}".zfill(3)
-                path = os.path.join(PEGASUS_ROOT, size, instance_class, "instances", f"{number}_sg.txt")
+                path = os.path.join(DATA_ROOT, size, instance_class, "instances", f"{number}_sg.txt")
                 J, h = read_instance_dict(path)
 
                 sampleset = sampler.sample_ising(h, J, num_reads=1000)
@@ -35,5 +35,5 @@ if __name__ == '__main__':
             df["Energy"] = energies
             df["State"] = states
 
-            df.to_csv(os.path.join(PEGASUS_ROOT, size, instance_class, "SA.csv"), index=False)
+            df.to_csv(os.path.join(DATA_ROOT, size, instance_class, "SA.csv"), index=False)
 

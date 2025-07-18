@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 from dimod import BinaryQuadraticModel
-from typing import Union
+from typing import Union, Callable
 from collections import namedtuple
 
 type Path = Union[str, os.PathLike]
@@ -22,7 +22,7 @@ def read_instance(path: Path, convention: str = "minus_half") -> tuple:
     :param convention:
     :return: J, h
     """
-    df = pd.read_csv(path, sep=" ", header=None, comment="#", names=["i", "j", "value"])
+    df = pd.read_csv(path, sep=" ", header=None, comment="#", names=["i", "j", "value"], index_col=False)
 
     n = max(df[["i", "j"]].max())
     h = np.zeros(n)
@@ -108,6 +108,19 @@ def calculate_energy(J: np.ndarray, h: np.ndarray, state: np.ndarray, convention
         return state @ J @ state.T + state @ h
 
 
+def calculate_energy_dict(J: dict, h: dict, state: Union[dict, np.ndarray], convention: str = "dwave"):
+    if isinstance(state, np.ndarray):
+        s = {node: state[idx] for idx, node in enumerate(h.keys())}
+    else:
+        s = state
+    if convention == "dwave":
+        E = sum(v * s[i] * s[j] for (i, j), v in J.items())
+        E += sum(v * s[i] for i, v in h.items())
+    else:
+        raise NotImplementedError("Not implemented")
+    return E
+
+
 def calculate_energy_matrix(J: np.ndarray, h: np.ndarray, state: np.ndarray, convention: str = "minus_half"):
     n, _ = J.shape
     if convention == "minus_half":
@@ -120,5 +133,9 @@ def calculate_energy_matrix(J: np.ndarray, h: np.ndarray, state: np.ndarray, con
     return np.sum(C, axis=0)
 
 
+def all_pegasuses(function: Callable, *args):
+    for size in ["P4", "P8", "P16"]:
+        for category in ["CBFM-P", "RAU", "RCO"]:
+            function(*args, size=size, category=category)
 
 
