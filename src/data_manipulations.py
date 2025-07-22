@@ -28,9 +28,6 @@ def aggregate_data(root_path: Path, size: str, category: str):
     main_df.to_csv(save_path, index=False)
 
 
-
-
-
 if __name__ == '__main__':
 
     aggregate_data(PEGASUS_ROOT, size="P16", category="RCO")

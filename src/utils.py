@@ -14,7 +14,7 @@ type Path = Union[str, os.PathLike]
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PEGASUS_ROOT = os.path.join(ROOT, "data", "pegasus")
 ZEPHYR_ROOT = os.path.join(ROOT, "data", "zephyr")
-
+RAW_PEGASUS_ROOT = os.path.join(ROOT, "raw_data", "pegasus")
 
 def read_instance(path: Path, convention: str = "minus_half") -> tuple:
     """
@@ -136,6 +136,15 @@ def calculate_energy_matrix(J: np.ndarray, h: np.ndarray, state: np.ndarray, con
 def all_pegasuses(function: Callable, *args):
     for size in ["P4", "P8", "P16"]:
         for category in ["CBFM-P", "RAU", "RCO"]:
+            if size == "P16" and category == "RAU":
+                continue
             function(*args, size=size, category=category)
 
 
+def save_raw_data(df, raw_root, size, category, name):
+    save_path = os.path.join(raw_root, size, category)
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    df.to_csv(os.path.join(save_path, name))
