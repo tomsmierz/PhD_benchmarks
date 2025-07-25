@@ -14,7 +14,12 @@ type Path = Union[str, os.PathLike]
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PEGASUS_ROOT = os.path.join(ROOT, "data", "pegasus")
 ZEPHYR_ROOT = os.path.join(ROOT, "data", "zephyr")
-RAW_PEGASUS_ROOT = os.path.join(ROOT, "raw_data", "pegasus")
+SQUARE1_ROOT = os.path.join(ROOT, "data", "50x50x1")
+SQUARE2_ROOT = os.path.join(ROOT, "data", "50x50x2")
+RAW_PEGASUS_ROOT = os.path.join(ROOT, "data", "raw_data", "pegasus")
+RAW_SQUARE1_ROOT = os.path.join(ROOT, "data", "raw_data", "square1")
+RAW_SQUARE2_ROOT = os.path.join(ROOT, "data", "raw_data", "square2")
+
 
 def read_instance(path: Path, convention: str = "minus_half") -> tuple:
     """
@@ -147,4 +152,13 @@ def save_raw_data(df, raw_root, size, category, name):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    df.to_csv(os.path.join(save_path, name))
+    df.to_csv(os.path.join(save_path, name), index_label=False)
+
+
+def save_raw_data_square(df, raw_root,  name):
+    save_path = os.path.join(raw_root)
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    df.to_csv(os.path.join(save_path, name), index_label=False)

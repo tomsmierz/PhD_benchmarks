@@ -6,7 +6,6 @@ from tqdm import tqdm
 from src.utils import read_instance, PEGASUS_ROOT
 
 
-
 def calculate_energy_gpu(J: cp.ndarray, h: cp.ndarray, state: cp.ndarray):
     # Zakładamy, że J jest hermitowska z czynnikiem 1/2
     n, _ = J.shape
@@ -60,6 +59,9 @@ def parrarel_annealing_gpu(J, h, step_size: float, lambda_t_max: float, num_step
 
 
 if __name__ == '__main__':
+
+
+
     test = os.path.join(PEGASUS_ROOT, "P4", "CBFM-P", "instances", "001_sg.txt")
     J, h = read_instance(test)
 
