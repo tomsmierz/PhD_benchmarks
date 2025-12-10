@@ -4,6 +4,7 @@ import os
 
 import pandas as pd
 import numpy as np
+import cupy as cp
 
 from dimod import BinaryQuadraticModel
 from typing import Union, Callable
@@ -19,6 +20,9 @@ SQUARE2_ROOT = os.path.join(ROOT, "data", "50x50x2")
 RAW_PEGASUS_ROOT = os.path.join(ROOT, "data", "raw_data", "pegasus")
 RAW_SQUARE1_ROOT = os.path.join(ROOT, "data", "raw_data", "square1")
 RAW_SQUARE2_ROOT = os.path.join(ROOT, "data", "raw_data", "square2")
+
+instance = namedtuple("instance", ["path", "best_energy", "name", "spins"])
+
 
 
 def read_instance(path: Path, convention: str = "minus_half") -> tuple:
@@ -162,3 +166,12 @@ def save_raw_data_square(df, raw_root,  name):
         os.makedirs(save_path)
 
     df.to_csv(os.path.join(save_path, name), index_label=False)
+
+
+def calculate_energy_gpu(J: cp.ndarray, h: cp.ndarray, state: cp.ndarray):
+    # Zakładamy, że J jest hermitowska z czynnikiem 1/2
+    n, _ = J.shape
+    A = cp.multiply(-1/2, J)
+    B = cp.matmul(A, state) - h.reshape(n, 1)
+    C = cp.multiply(state, B)
+    return cp.sum(C, axis=0)

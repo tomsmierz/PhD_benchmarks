@@ -1,9 +1,15 @@
 import os
+import time
+
 import cupy as cp
+import pandas as pd
+
+
 from typing import Optional
 from tqdm import tqdm
 
-from src.utils import read_instance, PEGASUS_ROOT
+from src.utils import read_instance, PEGASUS_ROOT, SQUARE1_ROOT
+
 
 
 def calculate_energy_gpu(J: cp.ndarray, h: cp.ndarray, state: cp.ndarray):
@@ -37,8 +43,7 @@ def parrarel_annealing_gpu(J, h, step_size: float, lambda_t_max: float, num_step
 
     threadsperblock = 256  # Ilość wątków w bloku,
     blockspergrid_x = num_trajectories  # każdy blok zajmuje się trajektorią
-    blockspergrid_y = (
-                                  n + threadsperblock - 1) // threadsperblock  # wystarczająca ilość bloków by pomieścić całą kolumnę
+    blockspergrid_y = (n + threadsperblock - 1) // threadsperblock  # wystarczająca ilość bloków by pomieścić całą kolumnę
     blockspergrid = (blockspergrid_x, blockspergrid_y)
 
     x_new = cp.empty_like(x)
@@ -60,13 +65,26 @@ def parrarel_annealing_gpu(J, h, step_size: float, lambda_t_max: float, num_step
 
 if __name__ == '__main__':
 
+    # test = os.path.join(PEGASUS_ROOT, "P4", "CBFM-P", "instances", "001_sg.txt")
+    folder = os.path.join(SQUARE1_ROOT, "instances")
+    df_best = pd.DataFrame(columns=["Instance", "Energy", "State", "Time"], index=None)
+
+    for filename in os.listdir(folder):
+        filepath = os.path.join(folder, filename)
+        J, h = read_instance(filepath)
+
+        J = cp.asarray(J, dtype=cp.float32)
+        h = cp.asarray(h, dtype=cp.float32)
+
+        # Kernel compilation
+        _, _ = parrarel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=10, num_trajectories=50)
+        start = time.time()
+        state, energy = parrarel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=10000, num_trajectories=2**11)
+        end = time.time()
+
+        elapsed = end - start
 
 
-    test = os.path.join(PEGASUS_ROOT, "P4", "CBFM-P", "instances", "001_sg.txt")
-    J, h = read_instance(test)
 
-    J = cp.asarray(J, dtype=cp.float32)
-    h = cp.asarray(h, dtype=cp.float32)
 
-    state, energy = parrarel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=1000, num_trajectories=5000)
-    print(min(energy))
+
