@@ -45,7 +45,7 @@ __global__ void parallel_annealing_step(float* A, float* h, float* x, float* mom
 
 
 
-void parallel_annealing_step_rowmajor(
+__global__ void parallel_annealing_step_rowmajor(
                                     const float* __restrict__ A,     // (n, M)
                                     const float* __restrict__ h,     // (n,)
                                     float* __restrict__ x,           // (n, M)

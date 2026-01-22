@@ -2,23 +2,13 @@ import os
 import time
 
 import cupy as cp
+import numpy as np
 import pandas as pd
-
 
 from typing import Optional
 from tqdm import tqdm
 
-from src.utils import read_instance, PEGASUS_ROOT, SQUARE1_ROOT
-
-
-
-def calculate_energy_gpu(J: cp.ndarray, h: cp.ndarray, state: cp.ndarray):
-    # Zakładamy, że J jest hermitowska z czynnikiem 1/2
-    n, _ = J.shape
-    A = cp.multiply(-1/2, J)
-    B = cp.matmul(A, state) - h.reshape(n, 1)
-    C = cp.multiply(state, B)
-    return cp.sum(C, axis=0)
+from src.utils import read_instance, PEGASUS_ROOT, SQUARE1_ROOT, calculate_energy_matrix, calculate_energy_gpu
 
 
 # def parrarel_annealing_gpu(J, h, step_size: float, lambda_t_max: float, num_steps: int, num_trajectories: int,
@@ -104,7 +94,7 @@ def parallel_annealing_gpu(
     n_i32 = cp.int32(n)
     M_i32 = cp.int32(M)
 
-    for k in range(num_steps):
+    for k in tqdm(range(num_steps), desc="parallel annealing"):
         lambda_t = dtype(schedule[k])
 
         # Reuse A
@@ -117,6 +107,34 @@ def parallel_annealing_gpu(
         )
 
     return state, calculate_energy_gpu(J, h, state)
+
+
+def calculate_gradient_matrix(J: np.ndarray, h: np.ndarray, x: np.ndarray, state: np.ndarray, lambda_t: float) -> np.ndarray:
+    n = len(h)
+    # używamy brodcastingu który jest wykonywany automatycznie w bibliotece numpy
+    return -1 * J @ state - h.reshape((n, 1)) + lambda_t * x
+
+
+def parallel_annealing_cpu(J, h, step_size: float, lambda_t_max: float, num_steps: int, num_trajectories: int,
+                           schedule: Optional[np.ndarray] = None, schedule_endpoint: Optional[float] = 0):
+    n = len(h)
+    x = np.zeros((n, num_trajectories))  # stan podstawowy dla H_innit = sum(x**2)
+    momentum = np.zeros((n, num_trajectories))
+    state = np.random.choice([-1, 1], size=(n, num_trajectories))  # losowy stan początkowy
+
+    if schedule is None:
+        schedule = np.linspace(lambda_t_max, schedule_endpoint, num=num_steps)
+
+    for k in tqdm(range(num_steps), desc="wyżarzanie równoległe"):
+        lambda_t = schedule[k]
+        gradient = calculate_gradient_matrix(J, h, x, state, lambda_t)
+        momentum = (1 - step_size) * momentum - step_size * gradient
+        momentum = np.clip(momentum, -1, 1)
+        x += momentum
+        x = np.clip(x, -1, 1)
+        state = np.sign(x)
+
+    return state, calculate_energy_matrix(J, h, state)
 
 
 if __name__ == '__main__':
@@ -133,11 +151,11 @@ if __name__ == '__main__':
         h = cp.asarray(h, dtype=cp.float32)
 
         # Kernel compilation
-        _, _ = parrarel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=10, num_trajectories=50)
+        _, _ = parallel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=10, num_trajectories=50)
 
         # Computation
         start = time.time()
-        state, energy = parrarel_annealing_gpu(J, h, step_size=0.01, lambda_t_max=10, num_steps=1000, num_trajectories=2**11)
+        state, energy = parallel_annealing_gpu(J, h, step_size=0.1, lambda_t_max=10, num_steps=1000, num_trajectories=2**11)
         end = time.time()
 
         elapsed = end - start

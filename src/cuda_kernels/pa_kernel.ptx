@@ -10,19 +10,19 @@
 .target sm_52
 .address_size 64
 
-	// .globl	parrarel_annealing_step
+	// .globl	parallel_annealing_step
 
-.visible .entry parrarel_annealing_step(
-	.param .u64 parrarel_annealing_step_param_0,
-	.param .u64 parrarel_annealing_step_param_1,
-	.param .u64 parrarel_annealing_step_param_2,
-	.param .u64 parrarel_annealing_step_param_3,
-	.param .f32 parrarel_annealing_step_param_4,
-	.param .f32 parrarel_annealing_step_param_5,
-	.param .u32 parrarel_annealing_step_param_6,
-	.param .u64 parrarel_annealing_step_param_7,
-	.param .u64 parrarel_annealing_step_param_8,
-	.param .u64 parrarel_annealing_step_param_9
+.visible .entry parallel_annealing_step(
+	.param .u64 parallel_annealing_step_param_0,
+	.param .u64 parallel_annealing_step_param_1,
+	.param .u64 parallel_annealing_step_param_2,
+	.param .u64 parallel_annealing_step_param_3,
+	.param .f32 parallel_annealing_step_param_4,
+	.param .f32 parallel_annealing_step_param_5,
+	.param .u32 parallel_annealing_step_param_6,
+	.param .u64 parallel_annealing_step_param_7,
+	.param .u64 parallel_annealing_step_param_8,
+	.param .u64 parallel_annealing_step_param_9
 )
 {
 	.reg .pred 	%p<4>;
@@ -31,16 +31,16 @@
 	.reg .b64 	%rd<24>;
 
 
-	ld.param.u64 	%rd2, [parrarel_annealing_step_param_0];
-	ld.param.u64 	%rd3, [parrarel_annealing_step_param_1];
-	ld.param.u64 	%rd4, [parrarel_annealing_step_param_2];
-	ld.param.u64 	%rd5, [parrarel_annealing_step_param_3];
-	ld.param.f32 	%f2, [parrarel_annealing_step_param_4];
-	ld.param.f32 	%f3, [parrarel_annealing_step_param_5];
-	ld.param.u32 	%r2, [parrarel_annealing_step_param_6];
-	ld.param.u64 	%rd6, [parrarel_annealing_step_param_7];
-	ld.param.u64 	%rd7, [parrarel_annealing_step_param_8];
-	ld.param.u64 	%rd8, [parrarel_annealing_step_param_9];
+	ld.param.u64 	%rd2, [parallel_annealing_step_param_0];
+	ld.param.u64 	%rd3, [parallel_annealing_step_param_1];
+	ld.param.u64 	%rd4, [parallel_annealing_step_param_2];
+	ld.param.u64 	%rd5, [parallel_annealing_step_param_3];
+	ld.param.f32 	%f2, [parallel_annealing_step_param_4];
+	ld.param.f32 	%f3, [parallel_annealing_step_param_5];
+	ld.param.u32 	%r2, [parallel_annealing_step_param_6];
+	ld.param.u64 	%rd6, [parallel_annealing_step_param_7];
+	ld.param.u64 	%rd7, [parallel_annealing_step_param_8];
+	ld.param.u64 	%rd8, [parallel_annealing_step_param_9];
 	mov.u32 	%r3, %ntid.x;
 	mov.u32 	%r4, %ctaid.y;
 	mov.u32 	%r5, %tid.x;
@@ -111,6 +111,89 @@ $L__BB0_3:
 	st.global.u32 	[%rd1], %r9;
 
 $L__BB0_6:
+	ret;
+
+}
+	// .globl	parallel_annealing_step_rowmajor
+.visible .entry parallel_annealing_step_rowmajor(
+	.param .u64 parallel_annealing_step_rowmajor_param_0,
+	.param .u64 parallel_annealing_step_rowmajor_param_1,
+	.param .u64 parallel_annealing_step_rowmajor_param_2,
+	.param .u64 parallel_annealing_step_rowmajor_param_3,
+	.param .f32 parallel_annealing_step_rowmajor_param_4,
+	.param .f32 parallel_annealing_step_rowmajor_param_5,
+	.param .u32 parallel_annealing_step_rowmajor_param_6,
+	.param .u32 parallel_annealing_step_rowmajor_param_7,
+	.param .u64 parallel_annealing_step_rowmajor_param_8
+)
+{
+	.reg .pred 	%p<6>;
+	.reg .f32 	%f<22>;
+	.reg .b32 	%r<12>;
+	.reg .b64 	%rd<18>;
+
+
+	ld.param.u64 	%rd1, [parallel_annealing_step_rowmajor_param_0];
+	ld.param.u64 	%rd2, [parallel_annealing_step_rowmajor_param_1];
+	ld.param.u64 	%rd3, [parallel_annealing_step_rowmajor_param_2];
+	ld.param.u64 	%rd4, [parallel_annealing_step_rowmajor_param_3];
+	ld.param.f32 	%f1, [parallel_annealing_step_rowmajor_param_4];
+	ld.param.f32 	%f2, [parallel_annealing_step_rowmajor_param_5];
+	ld.param.u32 	%r4, [parallel_annealing_step_rowmajor_param_6];
+	ld.param.u32 	%r3, [parallel_annealing_step_rowmajor_param_7];
+	ld.param.u64 	%rd5, [parallel_annealing_step_rowmajor_param_8];
+	mov.u32 	%r1, %ctaid.y;
+	mov.u32 	%r5, %ntid.x;
+	mov.u32 	%r6, %ctaid.x;
+	mov.u32 	%r7, %tid.x;
+	mad.lo.s32 	%r2, %r6, %r5, %r7;
+	setp.ge.s32 	%p1, %r1, %r4;
+	setp.ge.s32 	%p2, %r2, %r3;
+	or.pred  	%p3, %p1, %p2;
+	@%p3 bra 	$L__BB1_2;
+
+	cvta.to.global.u64 	%rd6, %rd3;
+	mad.lo.s32 	%r8, %r1, %r3, %r2;
+	mul.wide.s32 	%rd7, %r8, 4;
+	add.s64 	%rd8, %rd6, %rd7;
+	cvta.to.global.u64 	%rd9, %rd4;
+	add.s64 	%rd10, %rd9, %rd7;
+	cvta.to.global.u64 	%rd11, %rd1;
+	add.s64 	%rd12, %rd11, %rd7;
+	ld.global.nc.f32 	%f3, [%rd12];
+	neg.f32 	%f4, %f3;
+	cvta.to.global.u64 	%rd13, %rd2;
+	mul.wide.s32 	%rd14, %r1, 4;
+	add.s64 	%rd15, %rd13, %rd14;
+	ld.global.nc.f32 	%f5, [%rd15];
+	sub.f32 	%f6, %f4, %f5;
+	ld.global.f32 	%f7, [%rd8];
+	fma.rn.f32 	%f8, %f7, %f1, %f6;
+	mul.f32 	%f9, %f8, %f2;
+	neg.f32 	%f10, %f9;
+	mov.f32 	%f11, 0f3F800000;
+	sub.f32 	%f12, %f11, %f2;
+	ld.global.f32 	%f13, [%rd10];
+	fma.rn.f32 	%f14, %f12, %f13, %f10;
+	mov.f32 	%f15, 0fBF800000;
+	max.f32 	%f16, %f15, %f14;
+	min.f32 	%f17, %f11, %f16;
+	add.f32 	%f18, %f7, %f17;
+	max.f32 	%f19, %f15, %f18;
+	min.f32 	%f20, %f11, %f19;
+	st.global.f32 	[%rd10], %f17;
+	st.global.f32 	[%rd8], %f20;
+	setp.gt.f32 	%p4, %f20, 0f00000000;
+	selp.u32 	%r9, 1, 0, %p4;
+	setp.lt.f32 	%p5, %f20, 0f00000000;
+	selp.u32 	%r10, 1, 0, %p5;
+	sub.s32 	%r11, %r9, %r10;
+	cvt.rn.f32.s32 	%f21, %r11;
+	cvta.to.global.u64 	%rd16, %rd5;
+	add.s64 	%rd17, %rd16, %rd7;
+	st.global.f32 	[%rd17], %f21;
+
+$L__BB1_2:
 	ret;
 
 }
