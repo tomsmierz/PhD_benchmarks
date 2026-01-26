@@ -175,3 +175,15 @@ def calculate_energy_gpu(J: cp.ndarray, h: cp.ndarray, state: cp.ndarray):
     B = cp.matmul(A, state) - h.reshape(n, 1)
     C = cp.multiply(state, B)
     return cp.sum(C, axis=0)
+
+def dict_to_matrix(qubo: dict):
+    n = max(list(qubo.keys()), key=lambda x: x[0])[0] + 1
+    Q = np.zeros((n, n))
+
+    for (i, j), v in qubo.items():
+        if j > i:
+            Q[i,j] = v
+        else:
+            Q[j, i] = v
+
+    return Q

@@ -101,7 +101,7 @@ def simulated_annealing_cpu(J, h, M: int, num_steps: int, temp_range: Optional[t
     else:
         raise ValueError("Nieprawidłowy schedule")
 
-    for k in range(num_steps):
+    for k in tqdm(range(num_steps), desc= "simulated annealing"):
         temp = schedule[k]
         for idx in range(n):
             delta_e = calculate_delta_e_matrix(J, h, idx, solution, M)

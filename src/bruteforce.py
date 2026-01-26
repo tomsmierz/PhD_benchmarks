@@ -1,6 +1,8 @@
+import numpy as np
 import cupy as cp
 from tqdm import tqdm
-
+from itertools import product
+from src.utils import calculate_energy
 
 def select_lowest(energies, states, num_states):
     indices = cp.argpartition(energies, num_states)[:num_states]
@@ -48,3 +50,18 @@ def brute_force_gpu(Q, num_states: int, sweep_size_exponent: int = 10, threadspe
             final_energies, final_states = select_lowest(final_energies, final_states, num_states)
 
     return sort_by_key(final_energies, final_states, num_states)
+
+
+def brute_force_cpu(J, h):
+    best_energy = np.inf
+    best_state = None
+    n = len(h)
+
+    for state in tqdm(product([-1, 1], repeat=n), desc="Wyczerpujące przeszukiwanie", total=2**n):
+        state = np.array(state)
+        energy = calculate_energy(J, h, state, convention="dwave")
+        if energy < best_energy:
+            best_energy = energy
+            best_state = state
+
+    return best_state, best_energy
