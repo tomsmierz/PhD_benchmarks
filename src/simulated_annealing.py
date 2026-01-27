@@ -72,7 +72,7 @@ def calculate_energy_matrix(J: np.ndarray, h: np.ndarray, state: np.ndarray, con
 def acceptance_probability(delta_e, temp, r):
     beta = 1 / temp
     prob = np.ones_like(delta_e)
-    mask = prob >= 0
+    mask = delta_e >= 0
     prob[mask] = np.exp(-beta * delta_e[mask])
     accept = prob > r
     return accept
@@ -105,7 +105,7 @@ def simulated_annealing_cpu(J, h, M: int, num_steps: int, temp_range: Optional[t
         temp = schedule[k]
         for idx in range(n):
             delta_e = calculate_delta_e_matrix(J, h, idx, solution, M)
-            r = np.random.random()
+            r = np.random.random(M)
             mask = acceptance_probability(delta_e, temp, r)
 
             solution[idx, mask] *= -1
