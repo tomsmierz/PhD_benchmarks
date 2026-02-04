@@ -41,11 +41,13 @@ def calculate_tts(p_s, p_t, elapsed):
         return elapsed
 
 def main():
-    df = pd.DataFrame({"instance": [], "gs": [], "tts_bf_gpu": [], "tts_bf_cpu": [],
+    df = pd.DataFrame({"instance": [], "gs": [], "tts_bf_gpu": [],
                        "tts_sa":[], "tts_pa":[], "tts_sbm":[]})
     solutions = {}
     ground_states = {1: -31.25, 2: -27.25, 3: -29.25, 4: -26.75, 5: -26.75,
                      6: -29.75, 7: -31.0, 8: -28.0, 9: -29.75, 10: -32.25}
+    tts_bf = {1: 31.05, 2: 30.69 ,3: 35.21, 4: 35.27, 5: 35.06, 6: 35.09, 7: 35.46 , 8: 30.61, 9: 35.14 , 10: 35.22}
+
     p_t = 0.99
 
     for idx in range(1, 11):
@@ -77,6 +79,8 @@ def main():
         p_s = np.sum(energies_pa == ground_states[idx]) / len(energies_pa)
         tts_pa = calculate_tts(p_s, p_t, elapsed_pa)
 
+        solutions["tts_pa"] = tts_pa
+
         start = time.time()
         _, energies_sbm = discrete_simulated_bifurcation_cpu(J_m, h_m, 400, 0.25, 2**10)
         end = time.time()
@@ -84,9 +88,26 @@ def main():
 
         p_s = np.sum(energies_sbm == ground_states[idx]) / len(energies_sbm)
         tts_sbm = calculate_tts(p_s, p_t, elapsed_sbm)
-        print(tts_pa, tts_sbm)
+
+        solutions["tts_sbm"] = tts_sbm
+
+        start = time.time()
+        _, energies_sa = simulated_annealing_cpu(J_m, h_m, 2**10, 400)
+        end = time.time()
+        elapsed_sa = end - start
+
+        p_s = np.sum(energies_sa == ground_states[idx]) / len(energies_sa)
+        tts_sa = calculate_tts(p_s, p_t, elapsed_sa)
+
+        solutions["tts_sa"] = tts_sa
+        solutions["gs"] = ground_states[idx]
+        solutions["tts_bf_gpu"] = tts_bf[idx]
 
 
+        df.loc[len(df)] = solutions
+        df.to_csv(os.path.join(ROOT, "results", "example", "hex_30.csv"), index=False)
+
+    print(df)
 
 
 if __name__ == '__main__':
